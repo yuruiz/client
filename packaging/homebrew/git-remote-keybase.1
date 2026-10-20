@@ -1,0 +1,48 @@
+.TH GIT-REMOTE-KEYBASE 1
+.SH NAME
+git-remote-keybase \- daemonless Git transport for encrypted Keybase repositories
+.SH SYNOPSIS
+.B git-remote-keybase
+[options] remote [keybase://type/folder/repository]
+.br
+.B git-remote-keybase --setup --username USER --device-name NAME
+.SH DESCRIPTION
+Git invokes this helper for keybase:// URLs.
+It uses the official Keybase cryptographic and KBFS implementations in process.
+No Keybase daemon, KBFS daemon, mount or Homebrew service is required.
+Capability negotiation does not open an authenticated session.
+.PP
+Configure the account once with:
+.br
+.B git config --global keybase.username USER
+.PP
+Command-line --username takes precedence over KEYBASE_GIT_USERNAME, which takes
+precedence over Git's keybase.username setting.
+.SH AUTHENTICATION
+The default auto mode uses a configured helper device, otherwise it reads
+existing official-client device credentials without modifying them.
+If those credentials no longer exist, --setup authorizes a dedicated device
+once using a Paper Key. Its device name is public.
+Encrypted device keys and the macOS Keychain unlock material are retained.
+The Paper Key itself is not stored.
+.PP
+--auth-mode accepts auto, existing, device or oneshot.
+The oneshot mode is an explicit temporary Paper Key session.
+--paper-key-fd accepts an inherited descriptor of at least 3, only for setup
+or oneshot mode. It must be closed by its writer after supplying the key.
+.SH FILES
+Persistent devices are stored under the user's configuration directory,
+keybase-git-standalone/devices/USER.
+Identity caches for borrowed devices are stored under the user's cache directory,
+keybase-git-standalone/identities.
+These directories and the system Keychain are outside the Homebrew Cellar.
+Package upgrades and uninstall do not remove or revoke devices.
+.PP
+KEYBASE_GIT_STATE_DIR and KEYBASE_GIT_CACHE_DIR override their parent directories.
+KEYBASE_GIT_KEYBASE_HOME selects an existing official-client home.
+.SH DIAGNOSTICS
+--version prints helper and Keybase versions.
+--diagnostics reports initialization timing and, for long-running requests,
+symbolic goroutine stacks without argument values.
+.SH SEE ALSO
+git(1), git-config(1), gitremote-helpers(7), brew(1)

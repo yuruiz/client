@@ -78,6 +78,9 @@ const (
 // InitParams contains the initialization parameters for Init(). It is
 // usually filled in by the flags parser passed into AddFlags().
 type InitParams struct {
+	// SkipSignalHandling lets an embedding application own cancellation and
+	// shutdown. No process-wide signal handlers or os.Exit calls are installed.
+	SkipSignalHandling bool
 	// Whether to print debug messages.
 	Debug bool
 
@@ -539,6 +542,9 @@ func InitWithLogPrefix(
 	keybaseServiceCn KeybaseServiceCn, onInterruptFn func() error,
 	log logger.Logger, logPrefix string,
 ) (cfg Config, err error) {
+	if params.SkipSignalHandling {
+		return doInit(ctx, kbCtx, params, keybaseServiceCn, log, logPrefix)
+	}
 	done := make(chan struct{})
 	interruptChan := make(chan os.Signal, 1)
 

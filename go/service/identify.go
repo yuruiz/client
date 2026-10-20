@@ -33,7 +33,19 @@ var _ libkb.IdentifyUI = (*RemoteIdentifyUI)(nil)
 type IdentifyHandler struct {
 	*BaseHandler
 	libkb.Contextified
-	service *Service
+	service  *Service
+	localUIs func() libkb.UIs
+}
+
+func (h *IdentifyHandler) identifyUIs(sessionID int) libkb.UIs {
+	if h.localUIs != nil {
+		return h.localUIs()
+	}
+	return libkb.UIs{
+		LogUI:      h.getLogUI(sessionID),
+		IdentifyUI: h.NewRemoteIdentifyUI(sessionID, h.G()),
+		SessionID:  sessionID,
+	}
 }
 
 func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext, s *Service) *IdentifyHandler {
@@ -49,13 +61,7 @@ func (h *IdentifyHandler) Identify2(netCtx context.Context, arg keybase1.Identif
 	m := libkb.NewMetaContext(netCtx, h.G())
 	defer h.G().CTrace(netCtx, "IdentifyHandler#Identify2", &err)()
 
-	iui := h.NewRemoteIdentifyUI(arg.SessionID, h.G())
-	logui := h.getLogUI(arg.SessionID)
-	uis := libkb.UIs{
-		LogUI:      logui,
-		IdentifyUI: iui,
-		SessionID:  arg.SessionID,
-	}
+	uis := h.identifyUIs(arg.SessionID)
 	m = m.WithUIs(uis)
 	eng := engine.NewResolveThenIdentify2(h.G(), &arg)
 	err = engine.RunEngine2(m, eng)
@@ -148,13 +154,7 @@ func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.
 		ForceDisplay:          arg.ForceDisplay,
 	}
 
-	iui := h.NewRemoteIdentifyUI(arg.SessionID, h.G())
-	logui := h.getLogUI(arg.SessionID)
-	uis := libkb.UIs{
-		LogUI:      logui,
-		IdentifyUI: iui,
-		SessionID:  arg.SessionID,
-	}
+	uis := h.identifyUIs(arg.SessionID)
 	m = m.WithUIs(uis)
 	eng := engine.NewResolveThenIdentify2(h.G(), &id2arg)
 	err = engine.RunEngine2(m, eng)
@@ -342,13 +342,7 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Co
 				ForceDisplay:          false,
 			}
 
-			iui := h.NewRemoteIdentifyUI(arg.SessionID, h.G())
-			logui := h.getLogUI(arg.SessionID)
-			uis := libkb.UIs{
-				LogUI:      logui,
-				IdentifyUI: iui,
-				SessionID:  arg.SessionID,
-			}
+			uis := h.identifyUIs(arg.SessionID)
 
 			eng := engine.NewIdentify2WithUID(h.G(), &id2arg)
 			m := libkb.NewMetaContext(subctx, h.G()).WithUIs(uis)

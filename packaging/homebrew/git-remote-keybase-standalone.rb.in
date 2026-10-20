@@ -1,0 +1,66 @@
+class GitRemoteKeybaseStandalone < Formula
+  desc "Daemonless Git remote helper for encrypted Keybase repositories"
+  homepage @HOMEPAGE@
+  url @SOURCE_URL@
+  version @VERSION@
+  sha256 @SHA256@
+  license "BSD-3-Clause"
+
+  depends_on "go" => :build
+  depends_on :macos
+  uses_from_macos "git"
+
+  deny_network_access!
+
+  def fetch
+    ENV["GOMODCACHE"] = buildpath/"gomodcache"
+    cd "go" do
+      system "go", "mod", "download"
+    end
+  end
+
+  def install
+    ENV["GOMODCACHE"] = buildpath/"gomodcache"
+    ENV["GOPROXY"] = "off"
+    cd "go" do
+      system "go", "build", "-mod=readonly",
+             *std_go_args(output: bin/"git-remote-keybase", tags: "production",
+                          ldflags: "-X main.buildVersion=#{version}"),
+             "./kbfs/kbfsgit/git-remote-keybase-standalone"
+    end
+    doc.install "go/kbfs/kbfsgit/git-remote-keybase-standalone/README.md"
+    prefix.install "LICENSE"
+    pkgshare.install "SOURCE.json"
+    man1.install "packaging/homebrew/git-remote-keybase.1"
+  end
+
+  def caveats
+    <<~EOS
+      Configure your username once:
+        git config --global keybase.username YOUR_USERNAME
+
+      Existing helper devices and their Keychain entries are reused.
+      If no device credentials remain, authorize a dedicated device once:
+        git-remote-keybase --setup --username YOUR_USERNAME --device-name "Git Remote Helper"
+
+      No Keybase service or filesystem mount is required.
+      Device keys, Keychain entries and identity caches are outside the Cellar;
+      upgrading or uninstalling this formula does not delete them.
+      macOS may ask to allow the installed binary to access your Keychain.
+    EOS
+  end
+
+  test do
+    ENV["KEYBASE_GIT_USERNAME"] = ""
+    ENV["KEYBASE_GIT_PAPER_KEY_FD"] = ""
+    ENV["KEYBASE_GIT_AUTH_MODE"] = "auto"
+    ENV["KEYBASE_GIT_STATE_DIR"] = testpath/"state"
+    ENV["KEYBASE_GIT_CACHE_DIR"] = testpath/"cache"
+    assert_match "git-remote-keybase-standalone #{version}", shell_output("#{bin}/git-remote-keybase --version")
+    assert_equal "fetch\npush\noption\n\nok\n",
+                 pipe_output("#{bin}/git-remote-keybase origin keybase://private/testuser/test",
+                             "capabilities\noption progress false\n\n", 0)
+    refute_path_exists testpath/"state"
+    refute_path_exists testpath/"cache"
+  end
+end

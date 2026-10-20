@@ -1518,6 +1518,14 @@ func (g *GlobalContext) SecretStore() *SecretStoreLocked {
 	return g.secretStore
 }
 
+// SetSecretStore installs an explicit backend for an embedding client. Configure
+// it before starting authentication; ordinary clients use Configure instead.
+func (g *GlobalContext) SetSecretStore(backend SecretStoreAll) {
+	g.secretStoreMu.Lock()
+	defer g.secretStoreMu.Unlock()
+	g.secretStore = &SecretStoreLocked{mem: NewSecretStoreMem(), disk: backend}
+}
+
 // ReplaceSecretStore gets the existing secret out of the existing
 // secret store, creates a new secret store (could be a new type
 // of SecretStore based on a config change), and inserts the secret

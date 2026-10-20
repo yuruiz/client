@@ -54,11 +54,18 @@ func parseSlottedAccount(account string) string {
 // to the accountName field to write the secret multiple times, using a new
 // slot if an old one is corrupted. When reading the store we return the last
 // secret we have written down.
-type KeychainSecretStore struct{}
+type KeychainSecretStore struct {
+	// ServiceName isolates an embedding client's entries from the desktop
+	// client's keychain namespace. Empty preserves the standard namespace.
+	ServiceName string
+}
 
 var _ SecretStoreAll = KeychainSecretStore{}
 
 func (k KeychainSecretStore) serviceName(mctx MetaContext) string {
+	if k.ServiceName != "" {
+		return k.ServiceName
+	}
 	return mctx.G().GetStoredSecretServiceName()
 }
 

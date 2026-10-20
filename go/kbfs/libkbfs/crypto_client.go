@@ -31,6 +31,21 @@ const cryptoWarningTime = 2 * time.Minute
 
 var _ Crypto = (*CryptoClient)(nil)
 
+// NewCryptoClient constructs a crypto implementation backed by protocol
+// implementations in the caller's process, without opening an RPC connection.
+func NewCryptoClient(config Config, client keybase1.CryptoInterface,
+	teamsClient keybase1.TeamsInterface,
+) *CryptoClient {
+	log := config.MakeLogger("")
+	return &CryptoClient{
+		CryptoCommon: MakeCryptoCommon(config.Codec(), config),
+		log:          log,
+		deferLog:     log.CloneWithAddedDepth(1),
+		client:       client,
+		teamsClient:  teamsClient,
+	}
+}
+
 func (c *CryptoClient) logAboutTooLongUnlessCancelled(ctx context.Context,
 	method string,
 ) *time.Timer {

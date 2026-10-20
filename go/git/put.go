@@ -71,6 +71,12 @@ func sendChat(mctx libkb.MetaContext, teamID keybase1.TeamID, arg keybase1.PutGi
 		// only send chat for team repos
 		return nil
 	}
+	if mctx.G().ChatHelper == nil {
+		// A daemonless Git client can publish metadata without a chat runtime.
+		// Check before resolving channel settings, which also needs ChatHelper.
+		mctx.Debug("cannot send chat on git push to team channel because no ChatHelper")
+		return nil
+	}
 
 	settingsArg := keybase1.GetTeamRepoSettingsArg{
 		Folder: arg.Folder,
@@ -87,11 +93,6 @@ func sendChat(mctx libkb.MetaContext, teamID keybase1.TeamID, arg keybase1.PutGi
 		// this shouldn't happen, but protect it if it does:
 		mctx.Debug("invalid team repo settings:  chat enabled, but nil ChannelName.  using default.")
 		settings.ChannelName = &globals.DefaultTeamTopic
-	}
-
-	if mctx.G().ChatHelper == nil {
-		mctx.Debug("cannot send chat on git push to team channel because no ChatHelper")
-		return nil
 	}
 
 	if arg.Metadata.PushType == keybase1.GitPushType_DEFAULT && keybase1.TotalNumberOfCommits(arg.Metadata.Refs) == 0 {

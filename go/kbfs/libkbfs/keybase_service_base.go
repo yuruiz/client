@@ -134,7 +134,7 @@ func (k *KeybaseServiceBase) FillClients(
 	favoriteClient keybase1.FavoriteInterface,
 	kbfsClient keybase1.KbfsInterface,
 	kbfsMountClient keybase1.KbfsMountInterface,
-	gitClient keybase1.GitInterface, kvstoreClient keybase1.KvstoreClient,
+	gitClient keybase1.GitInterface, kvstoreClient keybase1.KvstoreInterface,
 ) {
 	k.identifyClient = identifyClient
 	k.userClient = userClient
