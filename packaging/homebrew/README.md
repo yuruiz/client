@@ -51,7 +51,7 @@ brew uninstall local/keybase-git/git-remote-keybase-standalone
 再运行安装脚本；也可以传入新版本号：
 
 ```sh
-bash packaging/homebrew/install-local.sh 0.1.1
+bash packaging/homebrew/install-local.sh 0.1.2
 ```
 
 同一版本的源码归档不可覆盖成不同内容，避免已经安装的版本与来源不一致。
@@ -68,7 +68,7 @@ bash packaging/homebrew/install-local.sh 0.1.1
 ## 生成可发布的源码包
 
 ```sh
-python3 packaging/homebrew/release.py --version 0.1.0 --output /持久位置/releases
+python3 packaging/homebrew/release.py --version 0.1.1 --output /持久位置/releases
 ```
 
 输出源码归档、校验文件和 Formula。源码快照包括当前 Go 工作区的已跟踪文件和未忽略的新文件，
@@ -80,9 +80,9 @@ python3 packaging/homebrew/release.py --version 0.1.0 --output /持久位置/rel
 `--source-url` 和 `--homepage` 生成指向该发布地址的 Formula：
 
 ```sh
-python3 packaging/homebrew/release.py --version 0.1.0 \
+python3 packaging/homebrew/release.py --version 0.1.1 \
   --output /持久位置/releases \
-  --source-url https://你的发布地址/git-remote-keybase-standalone-0.1.0.tar.gz \
+  --source-url https://你的发布地址/git-remote-keybase-standalone-0.1.1.tar.gz \
   --homepage https://你的项目主页
 ```
 

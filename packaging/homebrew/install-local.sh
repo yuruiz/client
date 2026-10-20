@@ -23,7 +23,9 @@ cp "$release_dir/$package_version/$package_name.rb" "$tap_dir/Formula/$package_n
 
 formula="$tap_name/$package_name"
 if "$brew_bin" list --formula "$formula" >/dev/null 2>&1; then
-  "$brew_bin" upgrade --build-bottle "$formula"
+  # upgrade retains the original bottle-build setting; --build-bottle itself
+  # is an install-only flag.
+  "$brew_bin" upgrade --build-from-source "$formula"
 else
   "$brew_bin" install --build-bottle "$formula"
 fi
